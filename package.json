@@ -1,0 +1,11 @@
+{
+  "name": "m2x-adt7410",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "async": "^1.2.1",
+    "i2c": "^0.1.8",
+    "m2x": "^2.1.9",
+    "promise": "^7.0.3"
+  }
+}
