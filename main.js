@@ -4,10 +4,16 @@ var M2X = require("m2x"),
   I2C = require("i2c"),
   Promise = require("promise"),
   Async = require('async'),
-  config = require("./config.js");
+  config = require("./config.js"),
+  exec = require('child_process').exec;
 
 var m2xClient = new M2X(config.m2x_api_key),
   censor = new I2C(config.address, {device: config.device});
+
+var lastTrigger = {
+  updatedAt: null,
+  value: null
+};
 
 var consolelog = function (message) {
   if (process.env.NODE_DEBUG) {
@@ -73,15 +79,45 @@ var sendM2X = function (client, deviceKey, streamName, value) {
   });
 };
 
-Async.forever(function (cb) {
-  Async.series([
-    function (cb) {
-      readTemperature(function (value) {
-        return sendM2X(m2xClient, config.m2x_device_key, config.m2x_stream_name, value);
-      });
-      setTimeout(cb, config.interval);
+var receiveM2X = function (client, deviceKey, streamName) {
+  return new Promise(function (resolve, reject) {
+    client.devices.stream(deviceKey, streamName, function (result) {
+      consolelog(result);
+
+      if (result.isError()) {
+        consoleerror(result.error());
+        reject(result.error());
+      } else {
+        resolve(result.json);
+      }
+    })
+  });
+};
+
+var executeTriggerIfNeeded = function (result) {
+  if (result.latest_value_at !== lastTrigger.updatedAt) {
+    lastTrigger.updatedAt = result.latest_value_at;
+    if (lastTrigger.value !== result.value) {
+      lastTrigger.value = result.value;
+
+      var log = config.trigger_callback(result.value, exec);
+      consolelog(log);
     }
-  ], cb);
+  }
+};
+
+/**
+ * Entry Point
+ */
+Async.forever(function (cb) {
+  readTemperature(function (value) {
+    return sendM2X(m2xClient, config.m2x_device_key, config.m2x_stream_name, value);
+  });
+
+  receiveM2X(m2xClient, config.m2x_device_key, config.m2x_stream_trigger_name)
+    .then(executeTriggerIfNeeded);
+
+  setTimeout(cb, config.interval);
 }, function (err) {
   consoleerror(err);
 });
