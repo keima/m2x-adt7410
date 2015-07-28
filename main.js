@@ -97,12 +97,10 @@ var receiveM2X = function (client, deviceKey, streamName) {
 var executeTriggerIfNeeded = function (result) {
   if (result.latest_value_at !== lastTrigger.updatedAt) {
     lastTrigger.updatedAt = result.latest_value_at;
-    if (lastTrigger.value !== result.value) {
-      lastTrigger.value = result.value;
+    lastTrigger.value = result.value;
 
-      var log = config.trigger_callback(result.value, exec);
-      consolelog(log);
-    }
+    var log = config.trigger_callback(result.value, exec);
+    consolelog(log);
   }
 };
 
