@@ -16,3 +16,17 @@ $ sudo forever start temperature/main.js
 ### Send program to RasPi
 
     $ scp main.js pi@192.168.1.101:~/temperature/
+
+### Gather InfraRed data
+
+One shot:
+
+    mode2 -m -d /dev/lirc0 > OUTPUT
+
+Repeat:
+
+    sudo irrecord -n -d /dev/lirc0 OUTPUT
+
+Format example:
+
+https://gist.github.com/keima/f153dc46d56a5aa7ca51
