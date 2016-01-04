@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "async": "^1.2.1",
-    "i2c": "git@github.com:keima/m2x-adt7410.git",
+    "i2c": "https://github.com/polaris/node-i2c",
     "m2x": "^2.1.9",
     "promise": "^7.0.3"
   }
