@@ -3,9 +3,7 @@ M2X-ADT7410 for node.js
 
 ## Using forever
 
-```
-$ sudo forever start temperature/main.js
-```
+    $ sudo forever start main.js
 
 ## Thanks
 
@@ -21,12 +19,18 @@ $ sudo forever start temperature/main.js
 
 One shot:
 
-    mode2 -m -d /dev/lirc0 > OUTPUT
+    $ mode2 -m -d /dev/lirc0 > OUTPUT
 
 Repeat:
 
-    sudo irrecord -n -d /dev/lirc0 OUTPUT
+    $ sudo irrecord -n -d /dev/lirc0 OUTPUT
 
 Format example:
 
 https://gist.github.com/keima/f153dc46d56a5aa7ca51
+
+### Running debug mode
+
+    $ NODE_DEBUG=true node main.js
+
+
