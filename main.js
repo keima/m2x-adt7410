@@ -8,7 +8,7 @@ var M2X = require("m2x"),
   exec = require('child_process').exec;
 
 var m2xClient = new M2X(config.m2x_api_key),
-  censor = new I2C(config.address, {device: config.device});
+  sensor = new I2C(config.address, {device: config.device});
 
 var lastTrigger = {
   updatedAt: null,
@@ -31,7 +31,7 @@ var consoleerror = function (message) {
  * @param {TemperatureCallback} cb - コールバック
  */
 var readTemperature = function (cb) {
-  censor.readBytes(0x00, 2, function (err, data) {
+  sensor.readBytes(0x00, 2, function (err, data) {
     if (err != null) {
       consoleerror(err);
     }
@@ -94,16 +94,6 @@ var receiveM2X = function (client, deviceKey, streamName) {
   });
 };
 
-var executeTriggerIfNeeded = function (result) {
-  if (result.latest_value_at !== lastTrigger.updatedAt) {
-    lastTrigger.updatedAt = result.latest_value_at;
-    lastTrigger.value = result.value;
-
-    var log = config.trigger_callback(result.value, exec);
-    consolelog(log);
-  }
-};
-
 /**
  * Entry Point
  */
@@ -112,8 +102,18 @@ Async.forever(function (cb) {
     return sendM2X(m2xClient, config.m2x_device_key, config.m2x_stream_name, value);
   });
 
-  receiveM2X(m2xClient, config.m2x_device_key, config.m2x_stream_trigger_name)
-    .then(executeTriggerIfNeeded);
+  config.m2x_stream_triggers.forEach(function (trigger) {
+    receiveM2X(m2xClient, config.m2x_device_key, trigger.name)
+      .then(function (result) {
+        if (result.latest_value_at !== lastTrigger.updatedAt) {
+          lastTrigger.updatedAt = result.latest_value_at;
+          lastTrigger.value = result.value;
+
+          var log = trigger.callback(result.value, exec);
+          consolelog(log);
+        }
+      });
+  });
 
   setTimeout(cb, config.interval);
 }, function (err) {
